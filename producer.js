@@ -7,7 +7,7 @@ const port = 8000
 
 const kafka = new Kafka({
   clientId: 'express-app',
-  brokers: ['localhost:9092', 'localhost:9092']
+  brokers: ['localhost:9092', 'localhost:9093']
 })
 
 const producer = kafka.producer()

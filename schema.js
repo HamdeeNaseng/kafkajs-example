@@ -2,9 +2,11 @@ const { Sequelize, DataTypes } = require('sequelize')
 
 // use sequenlize
 const sequelize = new Sequelize('tutorial', 'root', 'root', {
-  host: 'localhost',
-  dialect: 'mysql'
-})
+  host: '127.0.0.1',
+  dialect: 'mysql',
+  port: 3306
+});
+
 
 const Order = sequelize.define('orders', {
   userLineUid: {
