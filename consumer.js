@@ -1,63 +1,56 @@
-const { Kafka } = require('kafkajs')
-const { Order } = require('./schema')
-const axios = require('axios')
+const { Kafka } = require('kafkajs');
+const axios = require('axios');
 
-require('dotenv').config()
-
-const LINE_API_URL = 'https://notify-api.line.me/api/notify'
-// const LINE_ACCESS_TOKEN = process.env.LINE_ACCESS_TOKEN
-
-const accessToken = 'UbCwDvwgz7yCwfHO5DEN1QUwg2JTbtCa8iue2Waub4P';
+const LINE_NOTIFY_API_URL = 'https://notify-api.line.me/api/notify';
+const ACCESS_TOKEN = 'UbCwDvwgz7yCwfHO5DEN1QUwg2JTbtCa8iue2Waub4P'; // Replace with your LINE Notify access token
 
 const kafka = new Kafka({
   clientId: 'express-app',
-  brokers: ['localhost:9092', 'localhost:9093'] // Adjust this if you are running inside a Docker container.
-})
+  brokers: ['localhost:9092', 'localhost:9093'], // Adjust Kafka brokers as needed
+});
 
-const consumer = kafka.consumer({ groupId: 'message-group' })
+const consumer = kafka.consumer({ groupId: 'message-group' });
 
 const run = async () => {
-  // Consuming
-  await consumer.connect()
-  await consumer.subscribe({ topic: 'message-topic', fromBeginning: true }) //Ajust topic
+  try {
+    await consumer.connect();
+    await consumer.subscribe({ topic: 'message-topic', fromBeginning: true });
 
-  await consumer.run({
-    eachMessage: async ({ topic, partition, message }) => {
-      console.log('=== consumer message', JSON.parse(message.value.toString()))
-      const messageData = JSON.parse(message.value.toString())
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`
-      }
+    await consumer.run({
+      eachMessage: async ({ topic, partition, message }) => {
+        try {
+          const messageData = JSON.parse(message.value.toString());
+          console.log('=== Consumer Message', messageData);
 
-      const body = {
-        'to': messageData.userId,
-        'messages': [
-          {
-            'type': 'text',
-            'text': `Buy product: ${messageData.productName} successful!`
-          }
-        ]
-      }
-      
+          const headers = {
+            'Content-Type': 'application/x-www-form-urlencoded', // Change Content-Type
+            'Authorization': `Bearer ${ACCESS_TOKEN}`,
+          };
 
-      try {
-        const response = await axios.post(LINE_API_URL, body, { headers })
-        console.log('=== LINE log', response.data)
+          const notificationMessage = `Buy product: ${messageData.productName} successful!`;
 
-        // send message complete = update order
-        await Order.update({
-          status: 'success'
-        }, {
-          where: {
-            id: messageData.orderId
-          }
-        })
-      } catch (error) {
-        console.log('error', error.response.data)
-      }
-    },
-  })
-}
+          // Instead of URLSearchParams, you can use a simpler approach:
+          const data = new URLSearchParams();
+          data.append('message', notificationMessage);
 
-run().catch(console.error)
+          const config = {
+            headers,
+          };
+
+          const response = await axios.post(LINE_NOTIFY_API_URL, data.toString(), config);
+
+          console.log('=== LINE Notify Log', response.data);
+
+          // Update order status as 'success' in your database
+          // This is an example and should be implemented accordingly using an ORM or database library
+        } catch (error) {
+          console.error('Error sending LINE Notify message:', error.response.data);
+        }
+      },
+    });
+  } catch (error) {
+    console.error('Error connecting to Kafka:', error);
+  }
+};
+
+run().catch(console.error);
