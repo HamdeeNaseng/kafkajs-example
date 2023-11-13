@@ -6,7 +6,8 @@ const ACCESS_TOKEN = "UbCwDvwgz7yCwfHO5DEN1QUwg2JTbtCa8iue2Waub4P"; // Replace w
 
 const kafka = new Kafka({
   clientId: "express-app",
-  brokers: ["localhost:9092", "localhost:9093"], // Adjust Kafka brokers as needed
+  // brokers: ["localhost:9092", "localhost:9093"], // Adjust Kafka brokers as needed
+  brokers: ["localhost:9094", "localhost:9095", "localhost:9096"],
 });
 
 const consumer = kafka.consumer({ groupId: "message-group-product" });

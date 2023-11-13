@@ -5,10 +5,27 @@ const { Order, Product, sequelize } = require("./schema");
 const app = express();
 const port = 8000;
 
+const retry = (fn, retries, delay) =>
+  fn().catch((error) =>
+    retries > 0
+      ? new Promise((resolve) => setTimeout(() => resolve(retry(fn, retries - 1, delay)), delay))
+      : Promise.reject(error)
+  );
+
 const kafka = new Kafka({
-  clientId: "express-app",
-  brokers: ["localhost:9092", "localhost:9093"],
+  // clientId: "express-app",
+  // brokers: ["localhost:9092", "localhost:9093"],
+  brokers: ["localhost:9094", "localhost:9095", "localhost:9096"],
 });
+
+// Example of using retry with a delay
+retry(() => kafka.producer().connect(), 3, 1000)
+  .then(() => {
+    console.log("Connected to Kafka");
+    // Your Kafka-related code here
+  })
+  .catch((error) => console.error("Failed to connect to Kafka:", error));
+
 
 const producer = kafka.producer();
 
