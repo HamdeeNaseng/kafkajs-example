@@ -15,7 +15,7 @@ const retry = (fn, retries, delay) =>
 const kafka = new Kafka({
   // clientId: "express-app",
   // brokers: ["localhost:9092", "localhost:9093"],
-  brokers: ["localhost:9094", "localhost:9095", "localhost:9096"],
+  brokers: ["localhost:9097","localhost:9094", "localhost:9095", "localhost:9096"],
 });
 
 // Example of using retry with a delay
@@ -34,21 +34,26 @@ app.use(express.json());
 app.post("/api/create-product", async (req, res) => {
   const productData = req.body;
   try {
-    const product = await Product.create(productData);
-    const productResponse = {
-      ...product.dataValues,
-      type: "create",
-    };
+    // const product = await Product.create(productData);
+    // const productResponse = {
+    //   ...product.dataValues,
+    //   type: "create",
+    // };
 
     await producer.connect();
-    await producer.send({
-      topic: "message-product",
+    const product = await producer.send({
+      topic: "message-queue",
       messages: [
         {
-          value: JSON.stringify(productResponse),
+          value: JSON.stringify(productData),
         },
       ],
     });
+    const productResponse = {
+        ...product.dataValues,
+        status: 200,
+      };
+
     await producer.disconnect();
 
     res.json(productResponse);
@@ -143,16 +148,30 @@ app.post("/api/placeorder", async (req, res) => {
 
     const orderData = {
       productName: product.name,
+      productTypeId: product.productTypeId,
       userId,
       orderId: order.id,
     };
 
     await producer.connect();
+
+    if(product.productTypeId == 1){
+     
+      await producer.send({
+        topic: "electronic",
+        messages: [
+          {
+            value: JSON.stringify(orderData)
+          },
+        ],
+      });
+    }
+    
     await producer.send({
       topic: "message-topic",
       messages: [
         {
-          value: JSON.stringify(orderData),
+          value: JSON.stringify(orderData)
         },
       ],
     });

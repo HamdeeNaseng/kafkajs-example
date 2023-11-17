@@ -7,13 +7,17 @@ const ACCESS_TOKEN = "UbCwDvwgz7yCwfHO5DEN1QUwg2JTbtCa8iue2Waub4P"; // Replace w
 const kafka = new Kafka({
   clientId: "express-app",
   // brokers: ["localhost:9092", "localhost:9093"], // Adjust Kafka brokers as needed
-  brokers: ["localhost:9094", "localhost:9095", "localhost:9096"],
+  brokers: [
+    "localhost:9097",
+    "localhost:9094",
+    "localhost:9095",
+    "localhost:9096",
+  ],
 });
 
 const consumer = kafka.consumer({ groupId: "message-group-product" });
 
 const run = async () => {
-
   try {
     await consumer.connect();
     await consumer.subscribe({ topic: "message-product", fromBeginning: true });
@@ -34,18 +38,18 @@ const run = async () => {
           const createdAt = new Date(messageData.createdAt);
 
           let type = "The";
-          switch(messageData.type){
-            case 'create' :
-              type = "*\udbc0\udc78*\n*🗂Create*"
+          switch (messageData.type) {
+            case "create":
+              type = "*\udbc0\udc78*\n*🗂Create*";
               break;
-            case 'update' :
-              type = "*\udbc0\udc8d*\n*🪛Update*"
+            case "update":
+              type = "*\udbc0\udc8d*\n*🪛Update*";
               break;
-            case 'delete' :
-              type = "*\udbc0\udc8e*\n*🗑Delete*"
+            case "delete":
+              type = "*\udbc0\udc8e*\n*🗑Delete*";
               break;
-              default:
-                break;
+            default:
+              break;
           }
 
           const notificationMessage =

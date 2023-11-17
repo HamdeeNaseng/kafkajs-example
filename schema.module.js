@@ -1,11 +1,5 @@
 const { Sequelize, DataTypes } = require("sequelize");
 
-// use sequenlize
-// const sequelize = new Sequelize('tutorial', 'root', 'root', {
-//   host: '127.0.0.1',
-//   dialect: 'mysql',
-//   port: 3306
-// });
 const sequelize = new Sequelize("my_database", "my_user", "", {
   host: "127.0.0.1",
   dialect: "mysql",
@@ -75,6 +69,7 @@ Product.hasMany(Order);
 Order.belongsTo(Product);
 ProductType.hasMany(Product);
 Product.belongsTo(ProductType);
+
 module.exports = {
   Order,
   Product,

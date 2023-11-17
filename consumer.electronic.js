@@ -1,5 +1,4 @@
 const { Kafka } = require("kafkajs");
-const { Order, Product, sequelize } = require("./schema");
 const axios = require("axios");
 
 const LINE_NOTIFY_API_URL = "https://notify-api.line.me/api/notify";
@@ -21,13 +20,13 @@ const consumer = kafka.consumer({ groupId: "message-group" });
 const run = async () => {
   try {
     await consumer.connect();
-    await consumer.subscribe({ topic: "message-topic", fromBeginning: true });
+    await consumer.subscribe({ topic: "electronic", fromBeginning: true });
 
     await consumer.run({
       eachMessage: async ({ topic, partition, message }) => {
         try {
           const messageData = JSON.parse(message.value.toString());
-          // if (messageData.productTypeId != 1) {
+          // if (messageData.productTypeId == 1) {
             console.log("=== Consumer Message", messageData);
 
             const headers = {
@@ -35,7 +34,7 @@ const run = async () => {
               Authorization: `Bearer ${ACCESS_TOKEN}`,
             };
 
-            const notificationMessage = `Buy product: ${messageData.productName} successful!`;
+            const notificationMessage = `Order Electronic product created: ${messageData.productName} successful!`;
 
             // Instead of URLSearchParams, you can use a simpler approach:
             const data = new URLSearchParams();
